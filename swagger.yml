@@ -1,0 +1,254 @@
+swagger: '2.0'
+info:
+  title: Hublabs Order API
+  description: |
+  version: "1.0.0"
+host:
+basePath: /order-api
+schemes:
+  - https
+produces:
+  - application/json
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+security:
+  - Bearer: []
+paths:
+  /v1/order:
+    get:
+      summary: Get all Orders
+      description: |
+      parameters:
+        - name: orderStatus
+          in: query
+          description: |
+          required: true
+          type: string
+        - name: maxResultCount
+          in: query
+          description: |
+          required: false
+          type: number
+          format: integer
+        - name: skipCount
+          in: query
+          description: |
+          required: false
+          type: number
+          format: integer
+      tags:
+        - Order
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+    post:
+      summary: Create Order
+      description: |
+      tags:
+        - Order
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+  /v1/order/{id}:
+    put:
+      summary: Update Order
+      description: |
+      parameters:
+        - name: id
+          in: path
+          description: |
+          required: true
+          type: number
+          format: integer
+      tags:
+        - Order
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+    get:
+      summary: Get Order
+      description: |
+      parameters:
+        - name: id
+          in: path
+          description: |
+          required: true
+          type: number
+          format: integer
+      tags:
+        - Order
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+  /v1/refund:
+    get:
+      summary: Get all Refunds
+      description: |
+      parameters:
+        - name: refundStatus
+          in: query
+          description: |
+          required: true
+          type: string
+        - name: maxResultCount
+          in: query
+          description: |
+          required: false
+          type: number
+          format: integer
+        - name: skipCount
+          in: query
+          description: |
+          required: false
+          type: number
+          format: integer
+      tags:
+        - Order
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+    post:
+      summary: Create Refund
+      description: |
+      tags:
+        - Refund
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+  /v1/refund/{id}:
+    put:
+      summary: Update Refund
+      description: |
+      parameters:
+        - name: id
+          in: path
+          description: |
+          required: true
+          type: number
+          format: integer
+      tags:
+        - Refund
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+    get:
+      summary: Get Refund
+      description: |
+      parameters:
+        - name: id
+          in: path
+          description: |
+          required: true
+          type: number
+          format: integer
+      tags:
+        - Refund
+      responses:
+        200:
+          description: |
+          schema:
+            $ref: '#/definitions/ItemResult'
+        default:
+          description: error
+          schema:
+            $ref: '#/definitions/ErrorResult'
+definitions:
+  ItemResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: true
+      result:
+        $ref: '#/definitions/Item'
+  ArrayResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: true
+      result:
+        type: array
+        items:
+          $ref: '#/definitions/Item'
+  PagingResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: true
+      result:
+        $ref: '#/definitions/Paging'
+  Paging:
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        format: int32
+      items:
+        type: array
+        items:
+          $ref: '#/definitions/Item'
+  Item:
+    type: object
+  ErrorResult:
+    type: object
+    properties:
+      success:
+        type: boolean
+        default: false
+      error:
+        $ref: '#/definitions/Error'
+  Error:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
