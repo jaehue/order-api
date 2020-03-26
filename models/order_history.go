@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"nomni/utils/auth"
 	"time"
 
 	"github.com/hublabs/order-api/factory"
@@ -74,12 +73,12 @@ type OrderItemHistory struct {
 	UserClaimIss       string    `json:"userClaimIss" query:"userClaimIss" xorm:"VARCHAR(20) notnull" validate:"required"`
 }
 
-func (o *Order) NewOrderHistory(userClaim auth.UserClaim) OrderHistory {
+func (o *Order) NewOrderHistory(userClaim UserClaim) OrderHistory {
 	var orderHistory OrderHistory
 	orderHistory.OrderId = o.Id
-	orderHistory.TenantCode = userClaim.TenantCode
+	orderHistory.TenantCode = userClaim.tenantCode()
 	orderHistory.StoreId = o.StoreId
-	orderHistory.ChannelId = userClaim.ChannelId
+	orderHistory.ChannelId = userClaim.channelId()
 	orderHistory.SaleType = o.SaleType
 	orderHistory.CustomerId = o.CustomerId
 	orderHistory.OuterOrderNo = o.OuterOrderNo
@@ -99,12 +98,12 @@ func (o *Order) NewOrderHistory(userClaim auth.UserClaim) OrderHistory {
 	orderHistory.IsCustDel = o.IsCustDel
 	orderHistory.IsOutPaid = o.IsOutPaid
 	orderHistory.CreatedAt = o.UpdatedAt
-	if userClaim.Iss == auth.IssMembership {
-		orderHistory.CreatedId = userClaim.CustomerId
+	if userClaim.isCustomer() {
+		orderHistory.CreatedId = userClaim.customerId()
 	} else {
 		orderHistory.CreatedId = userClaim.ColleagueId
 	}
-	orderHistory.UserClaimIss = userClaim.Iss
+	orderHistory.UserClaimIss = userClaim.Issuer
 	orderItemHistorys := []OrderItemHistory{}
 	for _, item := range o.Items {
 		orderItemHistory := OrderItemHistory{}
@@ -138,12 +137,12 @@ func (o *Order) NewOrderHistory(userClaim auth.UserClaim) OrderHistory {
 		orderItemHistory.IsDelivery = item.IsDelivery
 		orderItemHistory.IsStockChecked = item.IsStockChecked
 		orderItemHistory.CreatedAt = item.UpdatedAt
-		if userClaim.Iss == auth.IssMembership {
-			orderItemHistory.CreatedId = userClaim.CustomerId
+		if userClaim.isCustomer() {
+			orderItemHistory.CreatedId = userClaim.customerId()
 		} else {
 			orderItemHistory.CreatedId = userClaim.ColleagueId
 		}
-		orderItemHistory.UserClaimIss = userClaim.Iss
+		orderItemHistory.UserClaimIss = userClaim.Issuer
 		orderItemHistorys = append(orderItemHistorys, orderItemHistory)
 	}
 	orderHistory.ItemHistory = append(orderHistory.ItemHistory, orderItemHistorys...)

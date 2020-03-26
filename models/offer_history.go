@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"nomni/utils/auth"
 	"time"
 
 	"github.com/hublabs/order-api/factory"
@@ -28,12 +27,12 @@ type OrderOfferHistory struct {
 	CreatedAt      time.Time `json:"createdAt" query:"createdAt" xorm:"created"`
 }
 
-func (o *OrderOffer) NewOrderOfferHistory(userClaim auth.UserClaim) OrderOfferHistory {
+func (o *OrderOffer) NewOrderOfferHistory(userClaim UserClaim) OrderOfferHistory {
 	var orderOfferHistory OrderOfferHistory
 	orderOfferHistory.OrderOfferId = o.Id
-	orderOfferHistory.TenantCode = userClaim.TenantCode
+	orderOfferHistory.TenantCode = userClaim.tenantCode()
 	orderOfferHistory.StoreId = o.StoreId
-	orderOfferHistory.ChannelId = userClaim.ChannelId
+	orderOfferHistory.ChannelId = userClaim.channelId()
 	orderOfferHistory.CustomerId = o.CustomerId
 	orderOfferHistory.OfferNo = o.OfferNo
 	orderOfferHistory.CouponNo = o.CouponNo

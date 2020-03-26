@@ -3,7 +3,7 @@ package models
 import (
 	"context"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/factory"
 )
@@ -14,7 +14,7 @@ func (order *Order) Update(ctx context.Context) error {
 		return err
 	}
 
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 	orderHistory := order.NewOrderHistory(userClaim)
 	if err := orderHistory.Save(ctx); err != nil {
 		return err
@@ -52,7 +52,7 @@ func (order *Order) changeOrderStatus(ctx context.Context, orderItemIds []int64,
 	}
 
 	if isOrderChange == true || isOrderItemChange == true {
-		userClaim := auth.UserClaim{}.FromCtx(ctx)
+		userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 		orderHistory := order.NewOrderHistory(userClaim)
 		if err := orderHistory.Save(ctx); err != nil {
 			return err

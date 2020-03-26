@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/enum"
 	"github.com/hublabs/order-api/factory"
@@ -17,10 +17,9 @@ import (
 )
 
 func (Order) GetOrders(ctx context.Context, tenantCode string, customerId, storeId, salesmanId int64, orderStatus, saleType, startAt, endAt, ids, outerOrderNo string, skipCount int, maxResultCount int) (int64, []Order, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-		if customerId == 0 {
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+	if userClaim.isCustomer() {
+		if userClaim.customerId() == 0 {
 			return 0, nil, errors.New("customerId:0")
 		}
 	}
@@ -39,8 +38,8 @@ func (Order) GetOrders(ctx context.Context, tenantCode string, customerId, store
 	}
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
@@ -55,8 +54,8 @@ func (Order) GetOrders(ctx context.Context, tenantCode string, customerId, store
 		if saleType != "" {
 			q.And("sale_type = ?", saleType)
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}
@@ -149,21 +148,19 @@ func (Order) GetOrders(ctx context.Context, tenantCode string, customerId, store
 }
 
 func (Order) GetOrder(ctx context.Context, tenantCode string, customerId int64, orderId int64, orderItemIds []int64, orderStatus string, IsCancelInclude bool) (Order, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("id = ?", orderId)
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
 			}
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}
@@ -232,10 +229,9 @@ func (Order) GetOrder(ctx context.Context, tenantCode string, customerId int64, 
 }
 
 func (Order) GetOrdersByItem(ctx context.Context, tenantCode string, customerId, storeId int64, orderStatus, ids, orderItemIds, startAt, endAt string, skipCount int, maxResultCount int, isRemoveRefund bool) (int64, []Order, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-		if customerId == 0 {
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+	if userClaim.isCustomer() {
+		if userClaim.customerId() == 0 {
 			return 0, nil, errors.New("customerid:0")
 		}
 	}
@@ -270,21 +266,19 @@ func (Order) GetOrdersByItem(ctx context.Context, tenantCode string, customerId,
 }
 
 func (Order) GetOnlyOrders(ctx context.Context, tenantCode string, customerId int64, orderIds []int64) ([]Order, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
 			}
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}
@@ -325,10 +319,9 @@ func (Order) GetOrderStatusCount(ctx context.Context, tenantCode string, custome
 		enum.BuyerReceivedConfirmed.String(),
 		enum.SaleOrderSuccess.String(),
 	}
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-		if customerId == 0 {
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+	if userClaim.isCustomer() {
+		if userClaim.customerId() == 0 {
 			return nil, errors.New("customerId:0")
 		}
 	}

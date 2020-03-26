@@ -2,7 +2,8 @@ package models
 
 import (
 	"context"
-	"nomni/utils/auth"
+
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/common/api"
 	"github.com/hublabs/order-api/enum"
@@ -34,7 +35,7 @@ func (refund *Refund) ChangeStatus(ctx context.Context, status string) (*Refund,
 	}
 	if isChange == true {
 		refund.addEventToOutBox(status)
-		userClaim := auth.UserClaim{}.FromCtx(ctx)
+		userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 		refundHistory := refund.NewRefundHistory(userClaim)
 		if err := refundHistory.Save(ctx); err != nil {
 			return nil, err

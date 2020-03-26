@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/enum"
 	"github.com/hublabs/order-api/factory"
@@ -45,10 +45,7 @@ func (OrderItem) GetOrderItems(ctx context.Context, tenantCode string, orderIds 
 }
 
 func (OrderItem) GetOrderItemsWithRefundItem(ctx context.Context, tenantCode string, customerId, storeId int64, orderStatus, ids, itemIds, startAt, endAt string, skipCount int, maxResultCount int, isRemoveRefund bool) (int64, []OrderItem, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 
 	var timeStart, timeEnd time.Time
 	var errt error
@@ -70,8 +67,8 @@ func (OrderItem) GetOrderItemsWithRefundItem(ctx context.Context, tenantCode str
 		q.Join("LEFT", "order_item_separate", "order_item.id = order_item_separate.order_item_id AND order_item_separate.is_delete=0")
 		q.Join("LEFT", "refund_item", "order_item.order_id = refund_item.order_id AND order_item.id = refund_item.order_item_id AND refund_item.separate_id = IFNULL(order_item_separate.id, 0) AND refund_item.status not in ('"+enum.RefundOrderCancel.String()+"')")
 		q.Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("order_item.tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("order_item.tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("order_item.tenant_code = ?", tenantCode)
@@ -99,8 +96,8 @@ func (OrderItem) GetOrderItemsWithRefundItem(ctx context.Context, tenantCode str
 		if storeId != 0 {
 			q.And("order_item.store_id = ?", storeId)
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("order_item.customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("order_item.customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("order_item.customer_id = ?", customerId)
 		}

@@ -2,9 +2,10 @@ package models
 
 import (
 	"context"
-	"nomni/utils/auth"
 	"strings"
 	"time"
+
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/enum"
 	"github.com/hublabs/order-api/factory"
@@ -13,10 +14,8 @@ import (
 )
 
 func (Refund) GetRefunds(ctx context.Context, tenantCode string, customerId int64, refundId int64, orderId, storeId int64, outerOrderNo, refundStatus, startAt, endAt string, skipCount int, maxResultCount int, IsCancelInclude bool) (int64, []Refund, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+
 	var timeStart, timeEnd time.Time
 	var errt error
 	if startAt != "" {
@@ -31,15 +30,15 @@ func (Refund) GetRefunds(ctx context.Context, tenantCode string, customerId int6
 	}
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
 			}
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}
@@ -131,21 +130,19 @@ func (Refund) GetRefunds(ctx context.Context, tenantCode string, customerId int6
 }
 
 func (Refund) GetRefund(ctx context.Context, tenantCode string, customerId int64, refundId int64, orderId int64, refundItemIds []int64, refundStatus string, IsCancelInclude bool) (Refund, error) {
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
 			}
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}

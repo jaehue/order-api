@@ -2,7 +2,8 @@ package models
 
 import (
 	"context"
-	"nomni/utils/auth"
+
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/factory"
 )
@@ -19,7 +20,7 @@ func (o *Refund) Update(ctx context.Context) error {
 		}
 	}
 
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 	refundHistory := o.NewRefundHistory(userClaim)
 	if err := refundHistory.Save(ctx); err != nil {
 		return err

@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"time"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/common/api"
 	"github.com/hublabs/order-api/enum"
@@ -16,23 +16,23 @@ import (
 	"github.com/pangpanglabs/goutils/number"
 )
 
-func (c *OrderInput) NewOrderEntity(userClaim auth.UserClaim) (models.Order, error) {
+func (c *OrderInput) NewOrderEntity(userClaim UserClaim) (models.Order, error) {
 	var order models.Order
-	order.TenantCode = userClaim.TenantCode
+	order.TenantCode = userClaim.tenantCode()
 	order.StoreId = c.StoreId
-	order.ChannelId = userClaim.ChannelId
+	order.ChannelId = userClaim.channelId()
 	order.OuterOrderNo = c.OuterOrderNo
 	order.SaleType = c.SaleType
-	if userClaim.Iss == auth.IssMembership {
-		order.CustomerId = userClaim.CustomerId
+	if userClaim.isCustomer() {
+		order.CustomerId = userClaim.customerId()
 		order.WxMiniAppOpenId = c.WxMiniAppOpenId
-		order.CreatedId = userClaim.CustomerId
-	} else if userClaim.Iss == auth.IssColleague {
+		order.CreatedId = userClaim.customerId()
+	} else if userClaim.isColleague() {
 		order.CustomerId = c.CustomerId
 		order.CreatedId = userClaim.ColleagueId
 	}
 	order.SalesmanId = c.SalesmanId
-	order.UserClaimIss = userClaim.Iss
+	order.UserClaimIss = userClaim.Issuer
 	order.CustRemark = c.CustRemark
 	order.ObtainMileage = c.ObtainMileage
 	order.Mileage = c.Mileage
@@ -187,9 +187,9 @@ func NewOrderEntity(ctx context.Context, customerId int64, orderId int64, InputE
 	if orderId == 0 {
 		return isChange, models.Order{}, factory.NewError(api.ErrorMissParameter, "order id")
 	}
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if customerId == 0 {
-		customerId = userClaim.CustomerId
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
+	if customerId == 0 && userClaim.isCustomer() {
+		customerId = userClaim.customerId()
 	}
 	o, err := models.Order{}.GetOrder(ctx, "", customerId, orderId, nil, "", false)
 	if err != nil {

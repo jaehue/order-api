@@ -2,7 +2,6 @@ package models
 
 import (
 	"context"
-	"nomni/utils/auth"
 	"time"
 
 	"github.com/hublabs/order-api/factory"
@@ -76,14 +75,14 @@ type RefundItemHistory struct {
 	UserClaimIss            string    `json:"userClaimIss" query:"userClaimIss" xorm:"VARCHAR(20) notnull" validate:"required"`
 }
 
-func (o *Refund) NewRefundHistory(userClaim auth.UserClaim) RefundHistory {
+func (o *Refund) NewRefundHistory(userClaim UserClaim) RefundHistory {
 	var refundHistory RefundHistory
 	refundHistory.RefundId = o.Id
 	refundHistory.OrderId = o.OrderId
 	refundHistory.OuterOrderNo = o.OuterOrderNo
-	refundHistory.TenantCode = userClaim.TenantCode
+	refundHistory.TenantCode = userClaim.tenantCode()
 	refundHistory.StoreId = o.StoreId
-	refundHistory.ChannelId = userClaim.ChannelId
+	refundHistory.ChannelId = userClaim.channelId()
 	refundHistory.RefundType = o.RefundType
 	refundHistory.CustomerId = o.CustomerId
 	refundHistory.CustRemark = o.CustRemark
@@ -100,12 +99,12 @@ func (o *Refund) NewRefundHistory(userClaim auth.UserClaim) RefundHistory {
 	refundHistory.Status = o.Status
 	refundHistory.IsOutPaid = o.IsOutPaid
 	refundHistory.CreatedAt = o.UpdatedAt
-	if userClaim.Iss == auth.IssMembership {
-		refundHistory.CreatedId = userClaim.CustomerId
+	if userClaim.isCustomer() {
+		refundHistory.CreatedId = userClaim.customerId()
 	} else {
 		refundHistory.CreatedId = userClaim.ColleagueId
 	}
-	refundHistory.UserClaimIss = userClaim.Iss
+	refundHistory.UserClaimIss = userClaim.Issuer
 	refundItemHistorys := []RefundItemHistory{}
 	for _, item := range o.Items {
 		refundItemHistory := RefundItemHistory{}
@@ -142,12 +141,12 @@ func (o *Refund) NewRefundHistory(userClaim auth.UserClaim) RefundHistory {
 		refundItemHistory.Status = item.Status
 		refundItemHistory.IsDelivery = item.IsDelivery
 		refundItemHistory.CreatedAt = item.UpdatedAt
-		if userClaim.Iss == auth.IssMembership {
-			refundItemHistory.CreatedId = userClaim.CustomerId
+		if userClaim.isCustomer() {
+			refundItemHistory.CreatedId = userClaim.customerId()
 		} else {
 			refundItemHistory.CreatedId = userClaim.ColleagueId
 		}
-		refundItemHistory.UserClaimIss = userClaim.Iss
+		refundItemHistory.UserClaimIss = userClaim.Issuer
 		refundItemHistorys = append(refundItemHistorys, refundItemHistory)
 	}
 	refundHistory.ItemHistory = append(refundHistory.ItemHistory, refundItemHistorys...)

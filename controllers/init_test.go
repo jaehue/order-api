@@ -10,8 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"nomni/utils/auth"
-
+	"github.com/hublabs/common/auth"
 	"github.com/hublabs/order-api/adapters"
 	"github.com/hublabs/order-api/config"
 	"github.com/hublabs/order-api/factory"
@@ -117,10 +116,10 @@ func setReq(url string, body interface{}) *http.Request {
 	req.Header.Set(echo.HeaderXRequestID, headerXRequestID)
 	req.Header.Set(echo.HeaderAuthorization, getToken())
 	userClaim := auth.UserClaim{
-		Id:         1001,
-		Iss:        "colleague",
-		TenantCode: "pangpang",
+		ColleagueId: 1001,
+		// TenantCode:  "hublabs",
 	}
+	userClaim.Issuer = "colleague"
 	req = req.WithContext(context.WithValue(context.Background(), "userClaim", userClaim))
 	return req
 }

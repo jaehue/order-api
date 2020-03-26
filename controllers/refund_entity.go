@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"nomni/utils/auth"
-
 	"github.com/hublabs/common/api"
 	"github.com/hublabs/order-api/enum"
 	"github.com/hublabs/order-api/factory"
@@ -146,7 +144,7 @@ func OrderItemSeparatesDelete(c context.Context, oldItemSeparates []models.Order
 	}
 }
 
-func (c *RefundInput) NewRefundEntity(userClaim auth.UserClaim, o models.Order) (models.Refund, error) {
+func (c *RefundInput) NewRefundEntity(userClaim UserClaim, o models.Order) (models.Refund, error) {
 	if o.Id == 0 {
 		return models.Refund{}, factory.NewError(api.ErrorMissParameter, "order id")
 	}
@@ -154,20 +152,20 @@ func (c *RefundInput) NewRefundEntity(userClaim auth.UserClaim, o models.Order) 
 		return models.Refund{}, factory.NewError(api.ErrorInvalidStatus, "Refund Create tatus not Allowed :"+o.Status)
 	}
 	var refund models.Refund
-	if userClaim.TenantCode != o.TenantCode {
+	if userClaim.tenantCode() != o.TenantCode {
 		return models.Refund{}, api.ErrorPermissionDenied.New(nil)
 	}
-	if userClaim.Iss == auth.IssMembership {
-		if userClaim.CustomerId != o.CustomerId {
+	if userClaim.isCustomer() {
+		if userClaim.customerId() != o.CustomerId {
 			return models.Refund{}, api.ErrorPermissionDenied.New(nil)
 		}
-		refund.CreatedId = userClaim.CustomerId
+		refund.CreatedId = userClaim.customerId()
 	} else {
 		refund.CreatedId = userClaim.ColleagueId
 	}
-	refund.TenantCode = userClaim.TenantCode
+	refund.TenantCode = userClaim.tenantCode()
 	refund.StoreId = o.StoreId
-	refund.ChannelId = userClaim.ChannelId
+	refund.ChannelId = userClaim.channelId()
 	refund.RefundType = c.RefundType
 	refund.CustomerId = o.CustomerId
 	if c.SalesmanId != 0 {

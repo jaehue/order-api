@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/common/api"
 	"github.com/hublabs/order-api/enum"
@@ -42,7 +42,7 @@ func (OrderController) Create(c echo.Context) error {
 	if err := c.Validate(orderInput); err != nil {
 		return renderFail(c, http.StatusBadRequest, err)
 	}
-	userClaim := auth.UserClaim{}.FromCtx(c.Request().Context())
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(c.Request().Context()))
 	order, err := orderInput.NewOrderEntity(userClaim)
 	if err != nil {
 		return renderFail(c, http.StatusBadRequest, api.ErrorParameterParsingFailed.New(err))

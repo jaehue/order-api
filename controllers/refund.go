@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/common/api"
 	"github.com/hublabs/order-api/enum"
@@ -65,7 +65,7 @@ func (RefundController) Create(c echo.Context) error {
 		return renderFail(c, http.StatusBadRequest, err)
 	}
 
-	userClaim := auth.UserClaim{}.FromCtx(c.Request().Context())
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(c.Request().Context()))
 	refund, err := refundInput.NewRefundEntity(userClaim, orderResults[0])
 	if err != nil {
 		return renderFail(c, http.StatusBadRequest, err)
@@ -125,7 +125,7 @@ func (RefundController) ExpectedRefund(c echo.Context) error {
 		return renderFail(c, http.StatusBadRequest, err)
 	}
 
-	userClaim := auth.UserClaim{}.FromCtx(c.Request().Context())
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(c.Request().Context()))
 	refund, err := refundInput.NewRefundEntity(userClaim, orderResults[0])
 	if err != nil {
 		return renderFail(c, http.StatusBadRequest, err)

@@ -5,10 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"nomni/utils/auth"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/enum"
 	"github.com/hublabs/order-api/factory"
@@ -443,7 +444,7 @@ func (o *Refund) Save(ctx context.Context) error {
 		}
 	}
 
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 	refundHistory := o.NewRefundHistory(userClaim)
 	if err := refundHistory.Save(ctx); err != nil {
 		return err

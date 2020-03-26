@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/factory"
 
@@ -48,22 +48,19 @@ type ItemAppliedCartOffer struct {
 
 func (OrderOffer) GetOrderOffer(ctx context.Context, tenantCode string, customerId int64, offerNo string, orderId int64, refundId int64) ([]OrderOffer, error) {
 	var orderOffer []OrderOffer
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
 			}
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId())
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}
@@ -89,22 +86,19 @@ func (OrderOffer) GetOrderOffer(ctx context.Context, tenantCode string, customer
 
 func (OrderOffer) GetOrderOffers(ctx context.Context, tenantCode string, customerId int64, offerNo string, orderIds []int64, refundIds []int64) ([]OrderOffer, error) {
 	var orderOffers []OrderOffer
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
-	if userClaim.Iss == auth.IssMembership {
-		customerId = userClaim.CustomerId
-	}
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 
 	queryBuilder := func() xorm.Interface {
 		q := factory.DB(ctx).Where("1=1")
-		if userClaim.TenantCode != "admin" {
-			q.And("tenant_code = ?", userClaim.TenantCode)
+		if userClaim.tenantCode() != "admin" {
+			q.And("tenant_code = ?", userClaim.tenantCode())
 		} else {
 			if tenantCode != "" {
 				q.And("tenant_code = ?", tenantCode)
 			}
 		}
-		if userClaim.Iss == auth.IssMembership {
-			q.And("customer_id = ?", customerId)
+		if userClaim.isCustomer() {
+			q.And("customer_id = ?", userClaim.customerId)
 		} else if customerId != 0 {
 			q.And("customer_id = ?", customerId)
 		}
@@ -168,7 +162,7 @@ func (offer *OrderOffer) Save(ctx context.Context) error {
 		return InsertNotFoundError
 	}
 
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 	orderofferHistory := offer.NewOrderOfferHistory(userClaim)
 	if err := orderofferHistory.Save(ctx); err != nil {
 		return err

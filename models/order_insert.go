@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"nomni/utils/auth"
+	"github.com/hublabs/common/auth"
 
 	"github.com/hublabs/order-api/factory"
 )
@@ -67,7 +67,7 @@ func (o *Order) Save(ctx context.Context) error {
 			return err
 		}
 	}
-	userClaim := auth.UserClaim{}.FromCtx(ctx)
+	userClaim := UserClaim(auth.UserClaim{}.FromCtx(ctx))
 	orderHistory := o.NewOrderHistory(userClaim)
 	if err := orderHistory.Save(ctx); err != nil {
 		return err
